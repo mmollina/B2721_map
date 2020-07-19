@@ -1,0 +1,321 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #####
+> ## Analitical procedures to construct the B2721 potato map
+> ## -----------------------------------------------------------
+> ## Author: Marcelo Mollinari
+> ## Data: Sun Jul 19, 2020
+> ## Bioinformatics Research Center
+> ## North Carolina State University 
+> #####
+> ## NOTE:to reproduce exactly the results presented in Pereira et al. (2020), install MAPpoly from the following Git Commit
+> ## devtools::install_github(repo = "mmollina/mappoly", ref = "df2050e55787ff68c59ee900d6184bbbaf7d3996", dependencies = F)
+> #### Functions ####
+> phasing_and_hmm_rf<-function(X){
++   fl<-paste0("output_map_ch_", X$seq$sequence[1], ".txt")
++   sink(fl)
++   map<-est_rf_hmm_sequential(input.seq = X$seq,
++                              start.set = 5,
++                              thres.twopt = 10,
++                              thres.hmm = 10,
++                              extend.tail = 200,
++                              twopt = X$tpt,
++                              verbose = TRUE,
++                              tol = 10e-3,
++                              tol.final = 10e-4,
++                              phase.number.limit = 60,
++                              sub.map.size.diff.limit = 8,
++                              info.tail = TRUE,
++                              reestimate.single.ph.configuration = TRUE) 
++   sink()
++   return(map)
++ }
+> error_model<-function(X, tol = 10e-4){
++   X$maps[[1]]$seq.rf <- rep(0.01, length(X$maps[[1]]$seq.rf))
++   x<-est_full_hmm_with_global_error(input.map = X, 
++                                     error = 0.05, 
++                                     tol = tol, 
++                                     verbose = FALSE)
++   return(x)
++ }
+> require(mappoly)
+Loading required package: mappoly
+Warning message:
+S3 method ‘plot.pcmap3d’ was declared in NAMESPACE but not found 
+> require(ggplot2)
+Loading required package: ggplot2
+> #### Initial analysis ####
+> ## Loading dataset from ClusterCall
+> B2721 <- read_geno_csv(file.in  = "../cluster_call/B2721_CC.csv", ploidy = 4, elim.redundant = FALSE)
+Reading the following data:
+    Ploidy level: 4
+    No. individuals:  156
+    No. markers:  5599
+    No. informative markers:  5599 (100%)
+    This dataset contains sequence information.
+    ...
+    Done with reading.
+    Filtering non-conforming markers.
+    ...
+    Done with filtering.
+> B2721
+This is an object of class 'mappoly.data'
+    Ploidy level:                            4 
+    No. individuals:                         156 
+    No. markers:                             5599 
+    Missing data:                            1.05%
+
+    This dataset contains sequence information.
+    ----------
+    No. of markers per dosage combination in both parents:
+    P1 P2 freq
+     0  1  157
+     0  2   56
+     1  0  520
+     1  1  493
+     1  2  353
+     1  3  133
+     2  0  126
+     2  1  402
+     2  2  581
+     2  3  506
+     2  4  218
+     3  1  157
+     3  2  373
+     3  3  587
+     3  4  639
+     4  2   78
+     4  3  220
+> ## Segregation test
+> pval.bonf <- 0.05/B2721$n.mrk
+> mrks.chi.filt <- filter_segregation(B2721, 
++                                     chisq.pval.thres =  pval.bonf, 
++                                     inter = FALSE)
+> seq.init<-make_seq_mappoly(mrks.chi.filt)
+> png("figures_during_analysis/filtered_data.png", 
++     width = 7.5, height = 5, units = "in", res = 200)
+> plot(seq.init)
+> dev.off()
+null device 
+          1 
+> 
+> ## Elinating redundant markers
+> seq.redundant <- elim_redundant(input.seq = seq.init)
+> print(seq.redundant)
+This is an object of class 'mappoly.sequence'
+    ------------------------
+    Parameters not estimated
+    ------------------------
+    Ploidy level:       4 
+    No. individuals:    156 
+    No. markers:        4812 
+
+    ----------
+    No. markers per sequence:
+  sequence No.mrk
+         1    514
+        10    247
+        11    355
+        12    270
+         2    470
+         3    432
+         4    468
+         5    357
+         6    428
+         7    440
+         8    368
+         9    398
+
+    ----------
+    No. of markers per dosage in both parents:
+    dP dQ freq
+     0  1  129
+     0  2   36
+     1  0  449
+     1  1  441
+     1  2  305
+     1  3  120
+     2  0   90
+     2  1  351
+     2  2  482
+     2  3  454
+     2  4  162
+     3  1  140
+     3  2  327
+     3  3  533
+     3  4  551
+     4  2   60
+     4  3  182
+------------
+Eliminated markers:  401 
+> plot(seq.redundant)
+> seq.unique <- make_seq_mappoly(seq.redundant)
+> plot(seq.unique)
+> 
+> #### Two-point analysis ####
+> all.rf.pairwise <- est_pairwise_rf(input.seq = seq.unique, 
++                                    n.clusters = 24)
+INFO: Using  24  CPUs for calculation.
+INFO: Done with 11575266  pairs of markers 
+INFO: Calculation took: 653.091 seconds
+> save(all.rf.pairwise, file = "twopt.RData")
+> #load("twopt.RData")
+> 
+> ## Recombinarion fraction matrix
+> mat <- rf_list_to_matrix(input.twopt = all.rf.pairwise)
+INFO: Going singlemode. Using one CPU.
+> png("figures_during_analysis/full_rf_mat.png", 
++     width = 7.5, height = 7.5, units = "in", res = 200)
+> plot(mat, ord = rownames(get_genomic_order(seq.unique)), index = FALSE)
+> dev.off()
+pdf 
+  2 
+> 
+> #### Groupping ####
+> grs <- group_mappoly(input.mat = mat,
++                      expected.groups = 12,
++                      comp.mat = TRUE, 
++                      inter = TRUE)
+> grs
+  This is an object of class 'mappoly.group'
+  ------------------------------------------
+  Criteria used to assign markers to groups:
+
+    - Number of markers:          4812 
+    - Number of linkage groups:   12 
+    - Number of markers per linkage groups: 
+    group n.mrk
+        1   582
+        2   475
+        3   373
+        4   351
+        5   494
+        6   433
+        7   399
+        8   338
+        9   272
+       10   448
+       11   420
+       12   227
+  ------------------------------------------
+     1   2   8  11   4   3   9   5  12   7   6  10 NoChr
+1  495  14   6   4   9  13   2  12   0   4   7   2    14
+2    5 433   3   3   4   6   1   8   0   0   2   6     4
+3    2   0 345   1   3   0   2   1   2   0   2   5    10
+4    5   1   0 325   1   3   1   2   2   0   5   5     1
+5    3   6   1   4 432   4   2  10   2  11   5   2    12
+6    2   8   1   4   6 398   8   2   0   1   1   1     1
+7    2   3   4   7   2   3 361   1   4   4   0   2     6
+8    0   2   0   1   2   3   1 316   2   1   1   4     5
+9    0   2   7   0   0   0   7   0 250   0   0   2     4
+10   0   1   1   0   7   2  13   4   0 417   1   0     2
+11   0   0   0   1   2   0   0   1   2   2 404   6     2
+12   0   0   0   5   0   0   0   0   6   0   0 212     4
+  ------------------------------------------
+> 
+> ## Correspondence with genome
+> z<-as.numeric(colnames(grs$seq.vs.grouped.snp)[1:12])
+> 
+> #### Assebling linkage groups (order based on genome) ####
+> LGS<-vector("list", 12)
+> for(ch in 1:12){
++   cat("\n ~~~~~~ ch:", ch, "...\n")
++   lg <- which(z==ch)
++   s<-make_seq_mappoly(grs, lg)
++   s<-make_seq_mappoly(B2721, names(which(s$sequence == ch)))
++   tpt <- make_pairs_mappoly(all.rf.pairwise, input.seq = s)
++   LGS[[ch]] <- list(seq = s,
++                     tpt = tpt)
++ }
+
+ ~~~~~~ ch: 1 ...
+
+ ~~~~~~ ch: 2 ...
+
+ ~~~~~~ ch: 3 ...
+
+ ~~~~~~ ch: 4 ...
+
+ ~~~~~~ ch: 5 ...
+
+ ~~~~~~ ch: 6 ...
+
+ ~~~~~~ ch: 7 ...
+
+ ~~~~~~ ch: 8 ...
+
+ ~~~~~~ ch: 9 ...
+
+ ~~~~~~ ch: 10 ...
+
+ ~~~~~~ ch: 11 ...
+
+ ~~~~~~ ch: 12 ...
+> #### Parallel map construction and genotype probability computation ####
+> cl <- parallel::makeCluster(12)
+> parallel::clusterEvalQ(cl, require(mappoly))
+[[1]]
+[1] TRUE
+
+[[2]]
+[1] TRUE
+
+[[3]]
+[1] TRUE
+
+[[4]]
+[1] TRUE
+
+[[5]]
+[1] TRUE
+
+[[6]]
+[1] TRUE
+
+[[7]]
+[1] TRUE
+
+[[8]]
+[1] TRUE
+
+[[9]]
+[1] TRUE
+
+[[10]]
+[1] TRUE
+
+[[11]]
+[1] TRUE
+
+[[12]]
+[1] TRUE
+
+> parallel::clusterExport(cl,  "B2721")
+> MAPs.geno <- parallel::parLapply(cl, LGS, phasing_and_hmm_rf)
+> final.maps <- parallel::parLapply(cl, MAPs.geno, error_model)
+> genoprob <- parallel::parLapply(cl, final.maps, calc_genoprob_error, step = 1, error = 0.05)
+> parallel::stopCluster(cl)
+> #### Saving image and session Info####
+> save.image("B2721_analysis.rda")
+> sink("sessionInfo_mapping.txt")
+> sessionInfo()
+> sink()
+> 
+> proc.time()
+    user   system  elapsed 
+ 793.472   60.468 7182.006 
