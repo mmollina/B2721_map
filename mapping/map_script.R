@@ -7,7 +7,7 @@
 ## North Carolina State University 
 #####
 ## NOTE:to reproduce exactly the results presented in Pereira et al. (2020), install MAPpoly from the following Git Commit
-## devtools::install_github(repo = "mmollina/mappoly", ref = "df2050e55787ff68c59ee900d6184bbbaf7d3996", dependencies = F)
+## devtools::install_github(repo = "mmollina/mappoly", ref = "affa31d531e5c460386277934634e9e3c26b4e90", dependencies = F)
 #### Functions ####
 phasing_and_hmm_rf<-function(X){
   fl<-paste0("output_map_ch_", X$seq$sequence[1], ".txt")
