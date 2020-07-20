@@ -48,17 +48,17 @@ mrks.chi.filt <- filter_segregation(B2721,
                                     chisq.pval.thres =  pval.bonf, 
                                     inter = FALSE)
 seq.init<-make_seq_mappoly(mrks.chi.filt)
-png("figures_during_analysis/filtered_data.png", 
-    width = 7.5, height = 5, units = "in", res = 200)
-plot(seq.init)
-dev.off()
 
 ## Elinating redundant markers
 seq.redundant <- elim_redundant(input.seq = seq.init)
 print(seq.redundant)
 plot(seq.redundant)
 seq.unique <- make_seq_mappoly(seq.redundant)
+
+png("figures_during_analysis/filtered_data.png", 
+    width = 7.5, height = 5, units = "in", res = 200)
 plot(seq.unique)
+dev.off()
 
 #### Two-point analysis ####
 all.rf.pairwise <- est_pairwise_rf(input.seq = seq.unique, 
