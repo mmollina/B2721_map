@@ -1,5 +1,5 @@
 #####
-## Analitical procedures to construct the B2721 potato map
+## Analytical procedures to construct the B2721 potato map
 ## -----------------------------------------------------------
 ## Author: Marcelo Mollinari
 ## Date: Sun Jul 19, 2020
