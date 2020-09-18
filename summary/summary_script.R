@@ -1,5 +1,5 @@
 #####
-## Analitical procedures to construct the B2721 potato map - Map Summary
+## Analytic procedures to construct the B2721 potato map - Map Summary
 ## -----------------------------------------------------------
 ## Author: Marcelo Mollinari
 ## Date: Sun Jul 19, 2020
@@ -17,7 +17,7 @@ setwd("summary/")
 B2721
 ## Bonferroni's p.value
 pval.bonf
-## Percentage removed due to segregetion distortion
+## Percentage removed due to segregation distortion
 100*length(mrks.chi.filt$exclude)/B2721$n.mrk
 
 ## Percentage removed due to segregetion distortion and redundancy  
