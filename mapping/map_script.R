@@ -1,13 +1,16 @@
 #####
-## Analytical procedures to construct the B2721 potato map
+## Analytic procedures to construct the B2721 potato map
 ## -----------------------------------------------------------
 ## Author: Marcelo Mollinari
 ## Date: Sun Jul 19, 2020
 ## Bioinformatics Research Center
 ## North Carolina State University 
 #####
-## NOTE:to reproduce exactly the results presented in Pereira et al. (2020), install MAPpoly from the following Git Commit
-## devtools::install_github(repo = "mmollina/mappoly", ref = "affa31d531e5c460386277934634e9e3c26b4e90", dependencies = F)
+## NOTE:to reproduce the exact same results presented in Pereira et al. (2020), 
+## install MAPpoly from the following Git Commit
+## devtools::install_github(repo = "mmollina/mappoly", 
+##                          ref = "affa31d531e5c460386277934634e9e3c26b4e90", 
+##                          dependencies = FALSE)
 #### Functions ####
 phasing_and_hmm_rf<-function(X){
   fl<-paste0("output_map_ch_", X$seq$sequence[1], ".txt")
@@ -66,14 +69,14 @@ all.rf.pairwise <- est_pairwise_rf(input.seq = seq.unique,
 save(all.rf.pairwise, file = "twopt.RData")
 #load("twopt.RData")
 
-## Recombinarion fraction matrix
+## Recombination fraction matrix
 mat <- rf_list_to_matrix(input.twopt = all.rf.pairwise)
 png("figures_during_analysis/full_rf_mat.png", 
     width = 7.5, height = 7.5, units = "in", res = 200)
 plot(mat, ord = rownames(get_genomic_order(seq.unique)), index = FALSE)
 dev.off()
 
-#### Groupping ####
+#### Grouping ####
 grs <- group_mappoly(input.mat = mat,
                      expected.groups = 12,
                      comp.mat = TRUE, 
