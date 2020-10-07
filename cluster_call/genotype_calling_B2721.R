@@ -1,5 +1,5 @@
 #####
-## Analitical procedures to construct the B2721 potato map - genotype calling
+## Analytic procedures to construct the B2721 potato map - genotype calling
 ## -----------------------------------------------------------
 ## Author: Marcelo Mollinari
 ## Date: Sun Jul 19, 2020
