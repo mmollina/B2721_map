@@ -83,7 +83,7 @@ grs <- group_mappoly(input.mat = mat,
                      inter = TRUE)
 grs
 
-## Correspondence with genome
+# Correspondence with genome
 z<-as.numeric(colnames(grs$seq.vs.grouped.snp)[1:12])
 
 #### Assebling linkage groups (order based on genome) ####
