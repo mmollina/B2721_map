@@ -1,5 +1,5 @@
 #####
-## Analitical procedures to construct the B2721 potato map - meiotic configurations
+## Analytical procedures to construct the B2721 potato map - meiotic configurations
 ## --------------------------------------------------------------------------------
 ## Author: Marcelo Mollinari
 ## Date: Sun Jul 19, 2020
